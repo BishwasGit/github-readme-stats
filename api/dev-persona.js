@@ -94,7 +94,12 @@ export default async (req, res) => {
     });
 
     // Set cache headers
-    const cacheSeconds = resolveCacheSeconds(cache_seconds, CACHE_TTL);
+    const cacheSeconds = resolveCacheSeconds({
+      requested: parseInt(cache_seconds, 10),
+      def: CACHE_TTL.STATS_CARD.DEFAULT,
+      min: CACHE_TTL.STATS_CARD.MIN,
+      max: CACHE_TTL.STATS_CARD.MAX,
+    });
     setCacheHeaders(res, cacheSeconds);
 
     return res.send(renderedCard);

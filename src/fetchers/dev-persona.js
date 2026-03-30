@@ -155,9 +155,6 @@ const fetchGitHubDevPersonaStats = async (login) => {
         repositoriesContributedTo(first: 1) {
           totalCount
         }
-        gists(first: 100) {
-          totalCount
-        }
       }
     }
   `;
@@ -218,7 +215,7 @@ const fetchGitHubDevPersonaStats = async (login) => {
         user.contributionsCollection.totalIssueContributions +
         user.contributionsCollection.totalPullRequestContributions,
       discussions: user.repositoryDiscussions.totalCount,
-      gists: user.gists.totalCount,
+      gists: 0, // Not queried due to token scope limits
       topLanguages,
       contributionsCollection: user.contributionsCollection,
     };
@@ -240,7 +237,7 @@ const fetchDevPersonaData = async (username, wakaTimeKey = null) => {
     throw new MissingParamError(["username"]);
   }
 
-  if (!githubUsernameRegex({ exact: true }).test(username)) {
+  if (!githubUsernameRegex.test(username)) {
     throw new CustomError(
       "Invalid username",
       "Please provide a valid GitHub username",
