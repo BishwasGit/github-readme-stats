@@ -1,14 +1,12 @@
 // @ts-check
 
-import { Card } from '../common/Card.js'
-import { getCardColors } from '../common/color.js'
-import { kFormatter } from '../common/fmt.js'
-import { flexLayout, measureText } from '../common/render.js'
-import { encodeHTML } from '../common/html.js'
+import { Card } from "../common/Card.js";
+import { kFormatter } from "../common/fmt.js";
+import { encodeHTML } from "../common/html.js";
 
-const CARD_MIN_WIDTH = 400
-const CARD_DEFAULT_WIDTH = 495
-const CARD_HEIGHT = 600
+const CARD_MIN_WIDTH = 400;
+const CARD_DEFAULT_WIDTH = 495;
+const CARD_HEIGHT = 600;
 
 /**
  * Create animated SVG progress bar
@@ -28,12 +26,12 @@ const createProgressBar = ({
   y,
   width = 200,
   percent = 50,
-  color = '#00FF41',
-  label = '',
+  color = "#00FF41",
+  label = "",
   animate = true,
 }) => {
-  const filledWidth = (width * percent) / 100
-  const animationClass = animate ? 'class="progress-fill-animation"' : ''
+  const filledWidth = (width * percent) / 100;
+  const animationClass = animate ? 'class="progress-fill-animation"' : "";
 
   return `
     <g data-testid="progress-bar" transform="translate(${x}, ${y})">
@@ -42,7 +40,7 @@ const createProgressBar = ({
       <!-- Filled bar -->
       <rect ${animationClass} x="0" y="0" width="${filledWidth}" height="8" rx="4" fill="${color}" opacity="0.9"/>
       <!-- Glow effect -->
-      <filter id="glow-${color.replace('#', '')}">
+      <filter id="glow-${color.replace("#", "")}">
         <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
         <feMerge>
           <feMergeNode in="coloredBlur"/>
@@ -50,18 +48,18 @@ const createProgressBar = ({
         </feMerge>
       </filter>
       <rect filter="url(#glow-${color.replace(
-        '#',
-        '',
+        "#",
+        "",
       )})" x="0" y="0" width="${filledWidth}" height="8" rx="4" fill="${color}" opacity="0.5"/>
       <!-- Label -->
       ${
         label
           ? `<text x="0" y="20" font-size="11" fill="${color}" font-family="monospace">${label}</text>`
-          : ''
+          : ""
       }
     </g>
-  `
-}
+  `;
+};
 
 /**
  * Create animated terminal text with typing effect
@@ -78,17 +76,17 @@ const createTerminalText = ({
   x,
   y,
   lines = [],
-  color = '#00FF41',
+  color = "#00FF41",
   animate = true,
 }) => {
-  const lineHeight = 16
+  const lineHeight = 16;
 
   const linesElements = lines
     .map((line, index) => {
-      const delay = animate ? index * 100 : 0
+      const delay = animate ? index * 100 : 0;
       const animationClass = animate
         ? `style="animation-delay: ${delay}ms"`
-        : ''
+        : "";
 
       return `
         <text
@@ -101,12 +99,12 @@ const createTerminalText = ({
           class="terminal-text"
           ${animationClass}
         >${encodeHTML(line)}</text>
-      `
+      `;
     })
-    .join('')
+    .join("");
 
-  return linesElements
-}
+  return linesElements;
+};
 
 /**
  * Create blinking cursor animation
@@ -117,13 +115,13 @@ const createTerminalText = ({
  * @param {string} params.color Cursor color
  * @returns {string} SVG cursor
  */
-const createBlinkingCursor = ({ x, y, color = '#00FF41' }) => {
+const createBlinkingCursor = ({ x, y, color = "#00FF41" }) => {
   return `
     <g data-testid="blinking-cursor" transform="translate(${x}, ${y})">
       <rect class="cursor-blink" x="0" y="0" width="6" height="12" fill="${color}" opacity="0.8"/>
     </g>
-  `
-}
+  `;
+};
 
 /**
  * Create stat item with icon and value
@@ -134,18 +132,16 @@ const createBlinkingCursor = ({ x, y, color = '#00FF41' }) => {
  * @param {string} params.label Label text
  * @param {string|number} params.value Value text
  * @param {string} params.color Accent color
- * @param {string=} params.icon Icon SVG
  * @returns {string} SVG stat item
  */
 const createStatItem = ({
   x,
   y,
-  label = '',
-  value = '',
-  color = '#00FF41',
-  icon = '',
+  label = "",
+  value = "",
+  color = "#00FF41",
 }) => {
-  const valueStr = String(value)
+  const valueStr = String(value);
   return `
     <g data-testid="stat-item" transform="translate(${x}, ${y})">
       <!-- Label -->
@@ -159,80 +155,8 @@ const createStatItem = ({
       <!-- Decorative line -->
       <line x1="0" y1="22" x2="80" y2="22" stroke="${color}" stroke-width="0.5" opacity="0.3"/>
     </g>
-  `
-}
-
-/**
- * Render the Dev Persona Card
- *
- * @param {object} devPersonaData Developer persona data
- * @param {object} options Render options
- * @returns {string} Rendered card SVG
- */
-export const renderDevPersonaCard = (devPersonaData, options = {}) => {
-  const {
-    title_color,
-    text_color,
-    icon_color,
-    bg_color,
-    border_color,
-    card_width = CARD_DEFAULT_WIDTH,
-    hide_title = false,
-    hide_border = false,
-    animate = true,
-    layout = 'full', // full or compact
-    custom_title = null,
-  } = options
-
-  // Validate width
-  let width = parseInt(card_width, 10)
-  if (Number.isNaN(width) || width < CARD_MIN_WIDTH) {
-    width = CARD_DEFAULT_WIDTH
-  }
-
-  const height = CARD_HEIGHT
-  const colors = {
-    titleColor: title_color || '#00FF41',
-    textColor: text_color || '#00FF41',
-    iconColor: icon_color || '#00FFFF',
-    bgColor: bg_color || '#0D0D0D',
-    borderColor: border_color || '#00FF41',
-  }
-
-  const card = new Card({
-    width,
-    height,
-    colors,
-    customTitle: custom_title || undefined,
-    defaultTitle: 'Dev Persona Card',
-  })
-
-  if (hide_title) {
-    card.setHideTitle(true)
-  }
-
-  if (hide_border) {
-    card.setHideBorder(true)
-  }
-
-  if (!animate) {
-    card.disableAnimations()
-  }
-
-  // Build card content
-  let content = renderDevPersonaContent(devPersonaData, {
-    colors,
-    width,
-    height,
-    animate,
-    layout,
-  })
-
-  // Combine with card
-  const cardWithContent = card.renderWithContent(content)
-
-  return cardWithContent
-}
+  `;
+};
 
 /**
  * Render the internal content of the dev persona card
@@ -242,7 +166,7 @@ export const renderDevPersonaCard = (devPersonaData, options = {}) => {
  * @returns {string} SVG content
  */
 const renderDevPersonaContent = (devPersonaData, renderOptions) => {
-  const { colors, width, height, animate, layout } = renderOptions
+  const { colors, width, animate } = renderOptions;
   const {
     username,
     name,
@@ -251,19 +175,12 @@ const renderDevPersonaContent = (devPersonaData, renderOptions) => {
     totalStars,
     totalCommits,
     totalMergedPRs,
-    totalIssues,
     bugSlayerLevel,
     coffeeCodeRatio,
     custom,
-    contributionsCollection,
-  } = devPersonaData
+  } = devPersonaData;
 
-  // Extract top languages if available
-  const topLangs = devPersonaData.topLanguages
-    ? devPersonaData.topLanguages.slice(0, 3)
-    : []
-
-  let yOffset = 50
+  let yOffset = 50;
 
   // Title section
   const titleSection = `
@@ -297,7 +214,7 @@ const renderDevPersonaContent = (devPersonaData, renderOptions) => {
         font-family="monospace"
         opacity="0.8"
       >${encodeHTML(
-        bio.substring(0, 50) || 'Building chaos into structure...',
+        bio.substring(0, 50) || "Building chaos into structure...",
       )}</text>
 
       <!-- Decorative line -->
@@ -311,9 +228,9 @@ const renderDevPersonaContent = (devPersonaData, renderOptions) => {
         opacity="0.3"
       />
     </g>
-  `
+  `;
 
-  yOffset += 80
+  yOffset += 80;
 
   // Metrics section
   const metricsSection = `
@@ -322,7 +239,7 @@ const renderDevPersonaContent = (devPersonaData, renderOptions) => {
       ${createStatItem({
         x: 25,
         y: yOffset,
-        label: '🐛 BUG SLAYER LVL',
+        label: "🐛 BUG SLAYER LVL",
         value: `${bugSlayerLevel}/10`,
         color: colors.titleColor,
       })}
@@ -341,8 +258,8 @@ const renderDevPersonaContent = (devPersonaData, renderOptions) => {
       ${createStatItem({
         x: width - 200,
         y: yOffset,
-        label: '☕ CODE RATIO',
-        value: coffeeCodeRatio?.value || '0.5 hrs/☕',
+        label: "☕ CODE RATIO",
+        value: coffeeCodeRatio?.value || "0.5 hrs/☕",
         color: colors.iconColor,
       })}
 
@@ -350,7 +267,7 @@ const renderDevPersonaContent = (devPersonaData, renderOptions) => {
       ${createStatItem({
         x: 25,
         y: yOffset + 70,
-        label: '[commitCount]',
+        label: "[commitCount]",
         value: kFormatter(totalCommits, 1),
         color: colors.textColor,
       })}
@@ -359,7 +276,7 @@ const renderDevPersonaContent = (devPersonaData, renderOptions) => {
       ${createStatItem({
         x: 180,
         y: yOffset + 70,
-        label: '[pullRequests]',
+        label: "[pullRequests]",
         value: kFormatter(totalMergedPRs, 1),
         color: colors.textColor,
       })}
@@ -368,24 +285,24 @@ const renderDevPersonaContent = (devPersonaData, renderOptions) => {
       ${createStatItem({
         x: width - 150,
         y: yOffset + 70,
-        label: '[⭐ earned]',
+        label: "[⭐ earned]",
         value: kFormatter(totalStars, 1),
         color: colors.textColor,
       })}
     </g>
-  `
+  `;
 
-  yOffset += 165
+  yOffset += 165;
 
   // Terminal section with fake logs
   const terminalLogs = [
-    '> Initializing ' + username + '.exe...',
-    '> Loading modules [████████░░] 80%',
-    '> Focus Hours: ' + custom.focus_hours + 'h',
-    '> Bugs Fixed: ' + custom.bugs_fixed,
-    '> Coffee Cups: ☕ x ' + custom.coffee_cups,
-    '> ' + (username + ' is online').toUpperCase(),
-  ]
+    "> Initializing " + username + ".exe...",
+    "> Loading modules [████████░░] 80%",
+    "> Focus Hours: " + custom.focus_hours + "h",
+    "> Bugs Fixed: " + custom.bugs_fixed,
+    "> Coffee Cups: ☕ x " + custom.coffee_cups,
+    "> " + (username + " is online").toUpperCase(),
+  ];
 
   const terminalSection = `
     <g data-testid="terminal-section">
@@ -418,9 +335,9 @@ const renderDevPersonaContent = (devPersonaData, renderOptions) => {
         color: colors.titleColor,
       })}
     </g>
-  `
+  `;
 
-  yOffset += 160
+  yOffset += 160;
 
   // Followers and engagement badges
   const badgesSection = `
@@ -445,22 +362,25 @@ const renderDevPersonaContent = (devPersonaData, renderOptions) => {
         </text>
       </g>
     </g>
-  `
+  `;
 
   // Combine all sections
-  return titleSection + metricsSection + terminalSection + badgesSection
-}
+  return titleSection + metricsSection + terminalSection + badgesSection;
+};
 
 /**
  * Custom renderWithContent method for Card
  * This extends the Card class temporarily to support content rendering
+ *
+ * @param {string} content SVG content string
+ * @returns {string} Complete SVG card string
  */
 Card.prototype.renderWithContent = function (content) {
   const bgColor = Array.isArray(this.colors.bgColor)
     ? this.colors.bgColor[0]
-    : this.colors.bgColor
+    : this.colors.bgColor;
 
-  const borderColor = this.colors.borderColor || this.colors.titleColor
+  const borderColor = this.colors.borderColor || this.colors.titleColor;
 
   const cardContent = `
     <svg
@@ -523,8 +443,9 @@ Card.prototype.renderWithContent = function (content) {
 
       <!-- Border -->
       ${
-        !this.hideBorder
-          ? `<rect
+        this.hideBorder
+          ? ""
+          : `<rect
         width="${this.width}"
         height="${this.height}"
         rx="${this.border_radius}"
@@ -534,13 +455,84 @@ Card.prototype.renderWithContent = function (content) {
         stroke-width="1.5"
         opacity="0.5"
       />`
-          : ''
       }
 
       <!-- Card content -->
       ${content}
     </svg>
-  `
+  `;
 
-  return cardContent
-}
+  return cardContent;
+};
+
+/**
+ * Render the Dev Persona Card
+ *
+ * @param {object} devPersonaData Developer persona data
+ * @param {object} options Render options
+ * @returns {string} Rendered card SVG
+ */
+export const renderDevPersonaCard = (devPersonaData, options = {}) => {
+  const {
+    title_color,
+    text_color,
+    icon_color,
+    bg_color,
+    border_color,
+    card_width = CARD_DEFAULT_WIDTH,
+    hide_title = false,
+    hide_border = false,
+    animate = true,
+    layout = "full", // full or compact
+    custom_title = null,
+  } = options;
+
+  // Validate width
+  let width = parseInt(card_width, 10);
+  if (Number.isNaN(width) || width < CARD_MIN_WIDTH) {
+    width = CARD_DEFAULT_WIDTH;
+  }
+
+  const height = CARD_HEIGHT;
+  const colors = {
+    titleColor: title_color || "#00FF41",
+    textColor: text_color || "#00FF41",
+    iconColor: icon_color || "#00FFFF",
+    bgColor: bg_color || "#0D0D0D",
+    borderColor: border_color || "#00FF41",
+  };
+
+  const card = new Card({
+    width,
+    height,
+    colors,
+    customTitle: custom_title || undefined,
+    defaultTitle: "Dev Persona Card",
+  });
+
+  if (hide_title) {
+    card.setHideTitle(true);
+  }
+
+  if (hide_border) {
+    card.setHideBorder(true);
+  }
+
+  if (!animate) {
+    card.disableAnimations();
+  }
+
+  // Build card content
+  let content = renderDevPersonaContent(devPersonaData, {
+    colors,
+    width,
+    height,
+    animate,
+    layout,
+  });
+
+  // Combine with card
+  const cardWithContent = card.renderWithContent(content);
+
+  return cardWithContent;
+};

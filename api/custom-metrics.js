@@ -9,25 +9,25 @@
  * @returns {void}
  */
 export default async (req, res) => {
-  const { username } = req.query
+  const { username } = req.query;
 
-  res.setHeader('Content-Type', 'application/json')
+  res.setHeader("Content-Type", "application/json");
 
   if (!username) {
     return res.status(400).json({
-      error: 'Username is required',
-      code: 'MISSING_PARAM',
-    })
+      error: "Username is required",
+      code: "MISSING_PARAM",
+    });
   }
 
   try {
     // Mock custom metrics based on username hash for variation
     const hash = username
-      .split('')
-      .reduce((acc, char) => acc + char.charCodeAt(0), 0)
+      .split("")
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
     const customMetrics = {
-      username: username,
+      username,
       timestamp: new Date().toISOString(),
       metrics: {
         focus_hours: Math.max(3, Math.min(12, (hash % 10) + 3)),
@@ -42,23 +42,23 @@ export default async (req, res) => {
         longest: Math.max(30, (hash % 100) + 30),
       },
       languages_today: [
-        { name: 'JavaScript', percent: 30 + (hash % 20) },
-        { name: 'Python', percent: 25 + (hash % 15) },
-        { name: 'TypeScript', percent: 20 + (hash % 15) },
-        { name: 'Other', percent: 25 - ((hash % 20) + (hash % 15)) },
+        { name: "JavaScript", percent: 30 + (hash % 20) },
+        { name: "Python", percent: 25 + (hash % 15) },
+        { name: "TypeScript", percent: 20 + (hash % 15) },
+        { name: "Other", percent: 25 - ((hash % 20) + (hash % 15)) },
       ],
-    }
+    };
 
     // Set cache headers to avoid hitting rate limits
-    res.setHeader('Cache-Control', 'public, max-age=3600')
-    res.setHeader('X-Metrics-Generated', new Date().toISOString())
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    res.setHeader("X-Metrics-Generated", new Date().toISOString());
 
-    return res.json(customMetrics)
+    return res.json(customMetrics);
   } catch (error) {
-    console.error('Custom metrics error:', error)
+    console.error("Custom metrics error:", error);
     return res.status(500).json({
-      error: 'Failed to generate custom metrics',
+      error: "Failed to generate custom metrics",
       message: error.message,
-    })
+    });
   }
-}
+};
